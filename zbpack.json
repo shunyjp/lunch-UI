@@ -1,0 +1,5 @@
+{
+  "python": {
+    "entry": "scripts/lunch_ui.py"
+  }
+}

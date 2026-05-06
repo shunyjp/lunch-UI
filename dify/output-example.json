@@ -1,0 +1,18 @@
+{
+  "has_salad_bar": true,
+  "protein_score": 4,
+  "vegetable_score": 5,
+  "low_carb_score": 4,
+  "building_type": "station_building",
+  "aircon_reliability": "high",
+  "stairs_risk": "low",
+  "confidence": 0.88,
+  "reason": [
+    "サラダバー付き定食の記載がある",
+    "鶏肉と魚メニューがありタンパク質を取りやすい",
+    "駅ビル内のため空調と昇降設備の信頼度が高い"
+  ],
+  "needs_manual_check": [
+    "ご飯少なめ対応の実運用"
+  ]
+}

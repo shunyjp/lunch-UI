@@ -1,0 +1,8 @@
+{
+  "station_name": "大宮駅",
+  "lunch_date": "2026-05-10",
+  "lunch_time": "12:00",
+  "max_walk_minutes": 10,
+  "min_rating": 3.5,
+  "output_format": "markdown"
+}

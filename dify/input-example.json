@@ -1,0 +1,17 @@
+{
+  "shop_id": "google_place_id_or_internal_id",
+  "shop_name": "店舗名",
+  "address": "住所",
+  "building_name": "建物名",
+  "floor_text": "4F",
+  "genre": "定食",
+  "rating": 4.1,
+  "review_count": 320,
+  "opening_hours_text": "11:00-15:00",
+  "non_smoking_text": "禁煙",
+  "menu_text": "サラダバー付き定食、鶏むね肉グリル、焼き魚定食、ご飯少なめ可",
+  "reviews_text": "野菜が多い、駅ビル内、昼は混むが店内は快適",
+  "is_chain_candidate": true,
+  "lunch_date": "2026-05-10",
+  "lunch_time": "12:00"
+}

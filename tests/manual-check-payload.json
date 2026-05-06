@@ -1,0 +1,8 @@
+{
+  "shop_id": "test-shop-005",
+  "building_type": "station_building",
+  "floor_text": "3F",
+  "stairs_risk": "low",
+  "aircon_reliability": "high",
+  "manual_note": "curl file test on 2026-05-05"
+}

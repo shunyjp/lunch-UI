@@ -1,0 +1,76 @@
+{
+  "name": "LunchRecommendation_Search_NoDB_Test",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lunch-recommendation-test",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "0f9454e6-9b19-4691-a70d-c0f1ac2bf001",
+      "name": "Lunch Search Test Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        260,
+        300
+      ],
+      "webhookId": "6ab7c20a-5d44-42c8-9198-d8c68d4ce001"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json.body ?? $json;\nconst stationName = String(input.station_name ?? '').trim();\nconst lunchDate = String(input.lunch_date ?? '').trim();\nconst lunchTime = String(input.lunch_time ?? '').trim();\n\nif (!stationName) throw new Error('station_name は必須です');\nif (!/^\\d{4}-\\d{2}-\\d{2}$/.test(lunchDate)) throw new Error('lunch_date は YYYY-MM-DD 形式で指定してください');\nif (!/^\\d{2}:\\d{2}$/.test(lunchTime)) throw new Error('lunch_time は HH:mm 形式で指定してください');\n\nreturn [{ json: {\n  station_name: stationName,\n  station_query: stationName.endsWith('駅') ? stationName : `${stationName}駅`,\n  lunch_date: lunchDate,\n  lunch_time: lunchTime,\n  max_walk_minutes: Number(input.max_walk_minutes ?? 10),\n  min_rating: Number(input.min_rating ?? 3.5),\n  output_format: String(input.output_format ?? 'markdown').toLowerCase() === 'html' ? 'html' : 'markdown'\n}}];"
+      },
+      "id": "6e27c25f-9e0e-489a-8451-c9c732cb0002",
+      "name": "Normalize Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const config = $json;\n\nfunction requireEnv(name) {\n  const value = process.env[name];\n  if (!value) throw new Error(`${name} が未設定です`);\n  return value;\n}\n\nfunction toQuery(params) {\n  const search = new URLSearchParams();\n  for (const [key, value] of Object.entries(params)) {\n    if (value !== undefined && value !== null && value !== '') {\n      search.set(key, String(value));\n    }\n  }\n  return search.toString();\n}\n\nasync function callJson(url, options = {}) {\n  const response = await fetch(url, options);\n  const text = await response.text();\n  const data = JSON.parse(text);\n  if (!response.ok) throw new Error(`HTTP ${response.status}: ${text.slice(0, 300)}`);\n  return data;\n}\n\nconst apiKey = requireEnv('GOOGLE_MAPS_API_KEY');\nconst geocode = await callJson(`https://maps.googleapis.com/maps/api/geocode/json?${toQuery({ address: `${config.station_query} 日本`, key: apiKey })}`);\nif (!Array.isArray(geocode.results) || geocode.results.length === 0) {\n  throw new Error('駅名を特定できませんでした。駅名に「駅」を付けるか、都道府県名を追加してください。');\n}\n\nconst station = geocode.results[0];\nconst stationLat = station.geometry.location.lat;\nconst stationLng = station.geometry.location.lng;\nconst nearby = await callJson(`https://maps.googleapis.com/maps/api/place/nearbysearch/json?${toQuery({ location: `${stationLat},${stationLng}`, radius: 1200, type: 'restaurant', language: 'ja', key: apiKey })}`);\n\nconst results = (nearby.results ?? []).slice(0, 5).map((shop) => ({\n  name: shop.name,\n  rating: shop.rating ?? null,\n  address: shop.vicinity ?? null,\n  place_id: shop.place_id ?? null\n}));\n\nreturn [{ json: {\n  station_name: config.station_name,\n  lunch_date: config.lunch_date,\n  lunch_time: config.lunch_time,\n  output_format: config.output_format,\n  rendered_content: JSON.stringify(results, null, 2),\n  result_json: { recommended: results, conditional: [], avoid: [] }\n}}];"
+      },
+      "id": "8c188529-8c45-4bcb-a9dd-b5527efd0003",
+      "name": "Search Test Candidates",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Lunch Search Test Webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Input": {
+      "main": [
+        [
+          {
+            "node": "Search Test Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

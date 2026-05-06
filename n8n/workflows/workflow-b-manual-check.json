@@ -1,0 +1,105 @@
+{
+  "name": "LunchRecommendation_ManualCheck",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lunch-manual-check",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "94c669bb-a3ca-4528-a842-97c5297338e7",
+      "name": "Manual Check Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        260,
+        300
+      ],
+      "webhookId": "6ae79906-c2ce-42ad-8c6b-2968f3052e4f"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst input = $json.body ?? $json;\nconst allowedBuildingTypes = [\n  'station_building',\n  'large_commercial_facility',\n  'department_store',\n  'office_building',\n  'hotel',\n  'chain_roadside',\n  'independent_roadside',\n  'zakkyo_building',\n  'basement',\n  'unknown',\n];\n\nconst allowedStairsRisk = ['low', 'medium', 'high', 'unknown'];\nconst allowedAircon = ['high', 'medium_high', 'medium', 'low_medium', 'low', 'unknown'];\n\nconst shopId = String(input.shop_id ?? '').trim();\nif (!shopId) {\n  throw new Error('shop_id は必須です');\n}\n\nconst buildingType = String(input.building_type ?? 'unknown');\nconst stairsRisk = String(input.stairs_risk ?? 'unknown');\nconst airconReliability = String(input.aircon_reliability ?? 'unknown');\n\nif (!allowedBuildingTypes.includes(buildingType)) {\n  throw new Error('building_type が不正です');\n}\n\nif (!allowedStairsRisk.includes(stairsRisk)) {\n  throw new Error('stairs_risk が不正です');\n}\n\nif (!allowedAircon.includes(airconReliability)) {\n  throw new Error('aircon_reliability が不正です');\n}\n\nreturn [{\n  json: {\n    shop_id: shopId,\n    building_type: buildingType,\n    floor_text: String(input.floor_text ?? '').trim(),\n    stairs_risk: stairsRisk,\n    aircon_reliability: airconReliability,\n    manual_note: String(input.manual_note ?? '').trim(),\n  },\n}];\n"
+      },
+      "id": "25947b48-0869-47b2-b0f6-6e72f1097a6d",
+      "name": "Normalize Manual Check",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO manual_checks (\n  shop_id, building_type, floor_text, stairs_risk, aircon_reliability, manual_note\n) VALUES (\n  $1, $2, $3, $4, $5, $6\n);",
+        "options": {
+          "queryReplacement": "={{ [$json.shop_id, $json.building_type, $json.floor_text, $json.stairs_risk, $json.aircon_reliability, $json.manual_note] }}"
+        }
+      },
+      "id": "d51339c4-d465-41fa-b67b-9c7d64aea908",
+      "name": "Insert Manual Check",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        780,
+        300
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "\nreturn [{\n  json: {\n    status: 'ok',\n    message: 'manual_checks に登録しました',\n    data: $('Normalize Manual Check').first().json,\n  },\n}];\n"
+      },
+      "id": "6e47b3e9-1459-4a27-91ce-8de8cbe33c54",
+      "name": "Manual Check Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Check Webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize Manual Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Manual Check": {
+      "main": [
+        [
+          {
+            "node": "Insert Manual Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Manual Check": {
+      "main": [
+        [
+          {
+            "node": "Manual Check Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
