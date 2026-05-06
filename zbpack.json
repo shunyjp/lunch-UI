@@ -1,5 +1,6 @@
 {
   "python": {
-    "entry": "scripts/lunch_ui.py"
-  }
+    "entry": "main.py"
+  },
+  "start_command": "_startup"
 }

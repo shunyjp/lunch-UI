@@ -47,7 +47,8 @@ git push -u origin main
 5. Root Directory はリポジトリ直下のまま
 6. Deploy
 
-Zeabur は Python プロジェクトとして認識し、`zbpack.json` を見て `scripts/lunch_ui.py` を起動対象にします。
+Zeabur は Python プロジェクトとして認識し、`main.py` を起動対象にします。  
+このリポジトリでは保険として `zbpack.json` にも `main.py` を指定しています。
 
 ## 必要な環境変数
 
@@ -80,6 +81,19 @@ LUNCH_UI_ACCESS_TOKEN=
 2. Basic 認証が効く
 3. `/healthz` が `ok` を返す
 4. フォーム送信で n8n の検索結果が返る
+
+## 404 のときにまず見る場所
+
+公開 URL が `404` の場合は、まず Zeabur の `Deployments` / `Runtime Logs` を確認します。
+
+特に次を見てください。
+
+1. Python サービスとして認識されているか
+2. `main.py` が起動対象になっているか
+3. `Lunch UI running on http://0.0.0.0:<PORT>` がログに出ているか
+4. crash loop や command not found がないか
+
+`py -3.14 ...` のような Windows 向けコマンドは Linux では使わないでください。Zeabur では `python` / `python3` 系、または `_startup` を使うのが安全です。
 
 ## 更新フロー
 

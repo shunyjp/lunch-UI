@@ -16,13 +16,10 @@ http://127.0.0.1:8787
 
 ## 外出先利用
 
-Zeabur に Python サービスとして配置できます。起動コマンドはこれで十分です。
+Zeabur に Python サービスとして配置できます。  
+このリポジトリでは `main.py` を追加してあるため、Zeabur 側は自動認識で起動しやすくなっています。
 
-```text
-py -3.14 scripts/lunch_ui.py
-```
-
-Zeabur では `PORT` が自動設定されるので、そのまま待ち受けできます。
+必要なら Start Command は空でもよいです。明示したい場合も Linux では `python3 main.py` を使ってください。
 
 ## できること
 
